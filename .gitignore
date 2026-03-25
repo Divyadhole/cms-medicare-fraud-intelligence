@@ -6,3 +6,5 @@ data/raw/*.csv
 data/raw/*.zip
 *.pkl
 .streamlit/secrets.toml
+!models/*.pkl
+!models/*.json
