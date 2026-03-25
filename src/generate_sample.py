@@ -122,7 +122,7 @@ for i in range(N):
     opioid_c  = max(0, int(tc * opioid_share))
 
     rows.append({
-        "npi":                           f"1{str(1000000000+i)}",
+        "npi":                           f"1{str(100000000+i).zfill(9)}",
         "nppes_provider_last_org_name":  np.random.choice(
             ["Smith","Johnson","Williams","Brown","Jones","Garcia",
              "Miller","Davis","Wilson","Moore","Patel","Kim","Nguyen","Chen"]),
