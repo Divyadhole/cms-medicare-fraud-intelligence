@@ -1,0 +1,120 @@
+name: Fraud Detection Pipeline Validation
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          pip install pandas numpy scikit-learn xgboost imbalanced-learn \
+                      shap matplotlib scipy joblib tqdm openpyxl requests
+
+      - name: Generate sample data
+        run: python src/generate_sample.py
+
+      - name: Run cleaning pipeline
+        run: |
+          python src/clean.py
+          python -c "
+          import pandas as pd
+          df = pd.read_csv('data/processed/cms_cleaned.csv', dtype={'npi': str})
+          assert len(df) == 50000, f'Expected 50000 rows, got {len(df)}'
+          assert df['npi'].str.match(r'^[12]\d{9}$').all(), 'NPI format invalid'
+          assert df['total_claim_count'].min() >= 11, 'Suppressed rows not removed'
+          print(f'✓ Clean data: {len(df):,} providers validated')
+          "
+
+      - name: Run feature engineering
+        run: |
+          python src/features.py
+          python -c "
+          import pandas as pd
+          df = pd.read_csv('data/processed/features.csv', dtype={'npi': str})
+          assert 'flag_count' in df.columns
+          assert 'z_total_claim_count' in df.columns
+          fraud = df[df['is_fraud_label'] == 1]['flag_count'].mean()
+          normal = df[df['is_fraud_label'] == 0]['flag_count'].mean()
+          separation = fraud / normal
+          assert separation > 10, f'Flag separation too low: {separation:.1f}x'
+          print(f'✓ Features: flag separation = {separation:.1f}x (fraud {fraud:.2f} vs normal {normal:.2f})')
+          "
+
+      - name: Load SQLite database
+        run: |
+          python src/ingest_db.py
+          python -c "
+          import sqlite3
+          conn = sqlite3.connect('data/fraud_intelligence.db')
+          n = conn.execute('SELECT COUNT(*) FROM providers').fetchone()[0]
+          assert n == 50000, f'Expected 50000 providers in DB, got {n}'
+          specs = conn.execute('SELECT COUNT(DISTINCT specialty) FROM providers').fetchone()[0]
+          assert specs >= 15, f'Expected 15+ specialties, got {specs}'
+          print(f'✓ DB: {n:,} providers, {specs} specialties')
+          conn.close()
+          "
+
+      - name: Train XGBoost model
+        run: |
+          python src/model_xgb.py
+          python -c "
+          import json, joblib
+          model = joblib.load('models/xgb_fraud.pkl')
+          assert model is not None
+          with open('models/xgb_metrics.json') as f:
+              metrics = json.load(f)
+          pr_auc = metrics.get('pr_auc', 0)
+          assert pr_auc > 0.90, f'PR-AUC too low: {pr_auc:.4f}'
+          print(f'✓ XGBoost PR-AUC: {pr_auc:.4f}')
+          "
+
+      - name: Run ensemble + SHAP
+        run: |
+          python src/model_ensemble.py
+          python -c "
+          import pandas as pd
+          scores = pd.read_csv('data/processed/ensemble_scores.csv', dtype={'npi': str})
+          labels_df = pd.read_csv('data/processed/features.csv', dtype={'npi': str})
+          merged = scores.merge(labels_df[['npi','is_fraud_label']], on='npi')
+          critical = merged[merged['fraud_tier'] == 'CRITICAL']
+          confirmed = critical['is_fraud_label'].sum()
+          rate = confirmed / len(critical) * 100 if len(critical) > 0 else 0
+          assert rate > 80, f'OIG confirmation rate too low: {rate:.1f}%'
+          print(f'✓ Ensemble: {len(critical)} CRITICAL providers, {rate:.1f}% OIG confirmed')
+          "
+
+      - name: Validate SHAP explanations generated
+        run: |
+          python -c "
+          import pandas as pd
+          shap = pd.read_csv('data/processed/shap_reasons.csv', dtype={'npi': str})
+          assert len(shap) >= 100, f'Too few SHAP rows: {len(shap)}'
+          assert 'reason_1' in shap.columns
+          assert shap['reason_1'].notna().sum() > 0
+          print(f'✓ SHAP: {len(shap)} providers have explanations')
+          "
+
+      - name: Validate data loader (app utils)
+        run: |
+          python -c "
+          import sys; sys.path.insert(0, '.')
+          from app.utils.data_loader import load_providers, load_shap, load_benchmarks
+          df = load_providers()
+          assert len(df) == 50000
+          assert 'fraud_tier' in df.columns or 'fraud_score_ensemble' in df.columns
+          bench = load_benchmarks()
+          assert len(bench) >= 15
+          print(f'✓ App data loader: {len(df):,} providers, {len(bench)} benchmarks')
+          "
