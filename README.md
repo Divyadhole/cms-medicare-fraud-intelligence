@@ -2,7 +2,7 @@
 
 [![Python](https://img.shields.io/badge/Python-3.10%2B-blue?logo=python)](https://python.org)
 [![XGBoost](https://img.shields.io/badge/XGBoost-PR--AUC%200.9996-brightgreen)](https://xgboost.readthedocs.io)
-[![Streamlit](https://img.shields.io/badge/Streamlit-Live%20App-ff4b4b?logo=streamlit)](https://cms-medicare-fraud-intelligence.streamlit.app)
+[![Streamlit](https://img.shields.io/badge/Streamlit-Live%20App-ff4b4b?logo=streamlit)](https://cms-fraud-divyadhole.streamlit.app)
 [![Data](https://img.shields.io/badge/Data-CMS%20Part%20D%202022-orange)](https://data.cms.gov/provider-summary-by-type-of-service/medicare-part-d-prescribers)
 [![OIG](https://img.shields.io/badge/OIG-98%25%20Confirmed-red)](https://oig.hhs.gov/exclusions/)
 
@@ -18,7 +18,7 @@ The model never saw the OIG labels during training. It found these providers pur
 
 ## Live App
 
-**[cms-medicare-fraud-intelligence.streamlit.app](https://cms-medicare-fraud-intelligence.streamlit.app)**
+**[cms-medicare-fraud-intelligence.streamlit.app](https://cms-fraud-divyadhole.streamlit.app)**
 
 Type any provider NPI → instant fraud risk score + SHAP explanation + peer comparison.
 
