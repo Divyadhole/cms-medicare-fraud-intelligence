@@ -183,3 +183,14 @@ python src/download_data.py
 
 *Built by Divya Dhole — MS Data Science @ University of Arizona*
 *Portfolio: [divyadhole.github.io](https://divyadhole.github.io) · LinkedIn: [linkedin.com/in/divyadhole](https://www.linkedin.com/in/divyadhole/)*
+
+---
+
+## Documentation
+
+| Document | Contents |
+|---|---|
+| [FINDINGS.md](FINDINGS.md) | Key findings — 98% OIG, brand signal, two-model rationale |
+| [docs/methodology.md](docs/methodology.md) | Full technical methodology — features, models, validation |
+| [docs/model_card.md](docs/model_card.md) | Model card — intended use, performance, fairness |
+| [docs/limitations.md](docs/limitations.md) | Honest limitations — what the model does and doesn't prove |
