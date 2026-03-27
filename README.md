@@ -16,11 +16,14 @@ The model never saw the OIG labels during training. It found these providers pur
 
 ---
 
-## Live App
+## Live Links
 
-**[cms-medicare-fraud-intelligence.streamlit.app](https://cms-fraud-divyadhole.streamlit.app)**
+| | URL |
+|---|---|
+| ▶ **Streamlit App** | [cms-fraud-divyadhole.streamlit.app](https://cms-fraud-divyadhole.streamlit.app) |
+| 💻 **GitHub Repo** | [github.com/Divyadhole/cms-medicare-fraud-intelligence](https://github.com/Divyadhole/cms-medicare-fraud-intelligence) |
 
-Type any provider NPI → instant fraud risk score + SHAP explanation + peer comparison.
+Type any provider NPI → instant fraud risk score, SHAP explanation, peer comparison, and OIG status.
 
 ---
 
