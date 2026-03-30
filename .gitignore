@@ -2,9 +2,5 @@ __pycache__/
 *.pyc
 .env
 .DS_Store
-data/raw/*.csv
-data/raw/*.zip
-*.pkl
+data/raw/
 .streamlit/secrets.toml
-!models/*.pkl
-!models/*.json
